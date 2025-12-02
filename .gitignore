@@ -1,0 +1,31 @@
+# Repo root .gitignore
+# Ignore frontend build and dependencies
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+/frontend/.vite/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+.yarn-debug.log*
+.yarn-error.log*
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+*.log
+

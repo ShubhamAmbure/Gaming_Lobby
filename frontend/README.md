@@ -15,123 +15,61 @@ A modern, fully responsive game lobby application built with React, TypeScript, 
 - **Search & Global Controls** - Built-in search and global settings
 
 ## Project Structure
+# GameHub (Frontend)
 
-```
-frontend/
-├── src/
-│   ├── components/
-│   │   ├── GameLobby.tsx      # Main lobby component
-│   │   └── GameCard.tsx        # Individual game card component
-│   ├── App.tsx                 # Main app wrapper
-│   └── index.css               # Tailwind imports
-├── tailwind.config.js          # Tailwind configuration
-├── postcss.config.js           # PostCSS configuration
-└── package.json                # Dependencies
-```
+A modern, responsive Game Lobby built with React, Vite and Tailwind CSS (v4).
 
-## Installation & Setup
+This repository contains the frontend UI for GameHub — a polished game discovery lobby with animated neon cards, play actions, favorites, notifications, and responsive layouts.
 
-1. **Navigate to frontend folder:**
-   ```bash
-   cd D:\Freelance\frontend
-   ```
+## Quickstart
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+1. Install dependencies:
 
-3. **Start development server:**
-   ```bash
-   npm start
-   ```
-
-4. **Build for production:**
-   ```bash
-   npm run build
-   ```
-
-## Available Scripts
-
-- `npm start` - Runs the app in development mode
-- `npm run build` - Builds the app for production
-- `npm test` - Runs the test suite
-- `npm run eject` - Ejects from Create React App (irreversible)
-
-## Technologies Used
-
-- **React 18+** - UI framework
-- **TypeScript** - Type-safe development
-- **Tailwind CSS 3** - Utility-first CSS framework
-- **Lucide React** - Beautiful icons
-- **PostCSS & Autoprefixer** - CSS processing
-
-## Game Lobby Features
-
-### GameLobby Component
-The main component that provides:
-- Sticky header with logo and controls
-- Horizontal scrolling game gallery
-- Dark/Light mode toggle
-- Search functionality
-- Featured collections section
-- Responsive footer
-
-### GameCard Component
-Individual game card with:
-- Colorful gradient backgrounds
-- Game icon and title
-- Category badge
-- Hover animations and scaling
-- Play button with action handler
-- Smooth transitions
-
-## Customization
-
-### Adding More Games
-Edit the `games` array in `GameLobby.tsx`:
-```typescript
-const games = [
-  { id: 1, title: 'Game Name', category: 'Category', icon: '🎮' },
-  // Add more games...
-];
+```powershell
+cd frontend
+npm install
 ```
 
-### Changing Colors
-Modify the `gradients` array in `GameCard.tsx` for different card colors.
+2. Start the dev server:
 
-### Dark Mode
-Toggle dark mode using the sun/moon button in the header, or programmatically with the `isDarkMode` state.
+```powershell
+npm run dev
+```
 
-## Responsive Breakpoints
+3. Open http://localhost:5173
 
-- **Mobile:** < 768px - Single column, full-width
-- **Tablet:** 768px - 1024px - 2 columns
-- **Desktop:** > 1024px - Full layout
+## Key folders
 
-## Browser Support
+- `frontend/src/` — application source
+  - `components/` — reusable UI components
+  - `pages/` — route pages
+  - `context/` — global app context (`AppContext.jsx`)
+  - `index.jsx` — app entry (wrapped with `AppProvider`)
+- `frontend/public/` — static assets
 
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
+## Architecture
 
-## Future Enhancements
+- Vite + React + Tailwind v4 for fast dev and small bundles.
+- `AppContext` (React Context + useReducer) manages shared state: `darkMode`, `favorites`, `notifications`, `recentlyPlayed`, `toasts`.
+- Toast system provides centered, accessible messages for actions.
 
-- [ ] Integration with game backend API
-- [ ] User authentication & profiles
-- [ ] Game ratings and reviews
-- [ ] Multiplayer features
-- [ ] Achievement system
-- [ ] Leaderboards
+## What I cleaned up
 
-## Notes
+- Added `.gitignore` to avoid committing `node_modules` and build artifacts.
+- Removed tracked build artifacts from the repo (committed separately).
 
-- The play button currently shows an alert. Replace with actual navigation using React Router.
-- Customize the games array to display real games from your backend.
-- Icons can be swapped using any emoji or SVG icons.
-- All styling is done with Tailwind CSS for easy customization.
+## Next recommended improvements
 
-## License
+- Persist `favorites` and `recentlyPlayed` to `localStorage`.
+- Replace alert placeholders with sliding panels / modals.
+- Optionally migrate to Redux for larger-scale state management.
 
-MIT
+## Contact / Notes
+
+If you'd like, I can:
+- Remove `node_modules` from the repo history (requires history rewrite).
+- Refactor all components to use `AppContext` instead of prop drilling.
+- Produce a one-page presentation (PRESENTATION.md) summarizing the code.
+
+---
+
