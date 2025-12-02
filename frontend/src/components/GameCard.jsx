@@ -1,8 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Play, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
-const GameCard = ({ game, isDarkMode, onPlay, isFavorite = false, onToggleFavorite }) => {
+const GameCard = ({ game }) => {
+  const { state, toggleFav, addRecent, addNotification, addToast } = useApp();
+  const isFavorite = (state.favorites || []).includes(game.id);
   // neon gradient pairs using hex values
   const gradientVars = [
     ['#3BF4C5', '#A46BFF'],
@@ -64,13 +67,18 @@ const GameCard = ({ game, isDarkMode, onPlay, isFavorite = false, onToggleFavori
   const navigate = useNavigate();
 
   const handleCardActivate = () => {
-    if (onPlay) return onPlay();
+    // update recent + notifications via context
+    addRecent(game.id);
+    addNotification(`Started playing ${game.title}`);
+    addToast({ id: Date.now(), message: '🎮 Game Started!', type: 'success', duration: 3000 });
     navigate(`/game/${game.id}`);
   };
 
   const toggleFavorite = (e) => {
     e.stopPropagation();
-    if (onToggleFavorite) onToggleFavorite();
+    toggleFav(game.id);
+    const isNowFav = !isFavorite;
+    addToast({ id: Date.now(), message: isNowFav ? '✨ Added to Favorites' : '❤️ Removed from Favorites', type: isNowFav ? 'success' : 'warning', duration: 2500 });
   };
 
   return (
@@ -136,7 +144,7 @@ const GameCard = ({ game, isDarkMode, onPlay, isFavorite = false, onToggleFavori
           <div className="flex items-center justify-between">
             <p className="text-white/80 text-sm font-medium">Click to play</p>
             <button
-              onClick={(e) => { e.stopPropagation(); if (onPlay) onPlay(); else navigate(`/game/${game.id}`); }}
+              onClick={(e) => { e.stopPropagation(); handleCardActivate(); }}
               className="font-bold py-3 px-5 rounded-full transition-all duration-200 transform hover:scale-110 shadow-lg flex items-center gap-2 neon-btn-hover"
               style={{ background: '#ffffff', color: '#0d1117' }}
             >

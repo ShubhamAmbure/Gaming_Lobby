@@ -1,61 +1,40 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { Gamepad2, Menu, Globe, Moon, Sun, Search } from 'lucide-react';
 import GameCard from './GameCard';
 import FloatingSidebar from './FloatingSidebar';
 import ToastContainer from './ToastContainer';
 import { useNavigate } from 'react-router-dom';
+import { useApp } from '../context/AppContext';
 
 const GameLobby = ({ games = [] }) => {
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [favorites, setFavorites] = useState([]);
-  const [notifications, setNotifications] = useState([]);
-  const [recentlyPlayed, setRecentlyPlayed] = useState([]);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const [search, setSearch] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [toasts, setToasts] = useState([]);
+  const { state, toggleDark, addRecent, addNotification, toggleFav, addToast, clearNotifications, removeToast } = useApp();
+  const { isDark, favorites, notifications, recentlyPlayed, toasts } = state;
+  const [scrollPosition, setScrollPosition] = React.useState(0);
+  const [search, setSearch] = React.useState('');
+  const [menuOpen, setMenuOpen] = React.useState(false);
 
-  const addToast = (message, type = 'info', duration = 3000) => {
+  const addToastMessage = (message, type = 'info', duration = 3000) => {
     const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type, duration }]);
+    addToast({ id, message, type, duration });
   };
 
-  const removeToast = (id) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  // use context removeToast
+  const _removeToast = (id) => { if (removeToast) removeToast(id); };
 
   const handleGameClick = (gameId) => {
-    // record recently played (keep unique, most recent first, max 10)
-    setRecentlyPlayed((prev) => {
-      const next = [gameId, ...prev.filter((id) => id !== gameId)];
-      return next.slice(0, 10);
-    });
-
-    // add a notification
-    setNotifications((prev) => {
-      const game = games.find((g) => g.id === gameId);
-      return [{ id: Date.now(), text: `Started playing ${game?.title || 'Game'}` }, ...prev].slice(0, 20);
-    });
-
-    addToast(`🎮 Game Started!`, 'success');
+    addRecent(gameId);
+    const game = games.find((g) => g.id === gameId);
+    addNotification(`Started playing ${game?.title || 'Game'}`);
+    addToastMessage(`🎮 Game Started!`, 'success');
     navigate(`/game/${gameId}`);
   };
 
   const toggleFavorite = (gameId) => {
-    setFavorites((prev) => {
-      const isFav = prev.includes(gameId);
-      if (isFav) {
-        addToast(`❤️ Removed from Favorites`, 'warning');
-        return prev.filter((id) => id !== gameId);
-      } else {
-        addToast(`✨ Added to Favorites`, 'success');
-        return [gameId, ...prev].slice(0, 50);
-      }
-    });
+    toggleFav(gameId);
+    const isNowFav = !(favorites || []).includes(gameId);
+    addToastMessage(isNowFav ? `✨ Added to Favorites` : `❤️ Removed from Favorites`, isNowFav ? 'success' : 'warning');
   };
-
-  const clearNotifications = () => setNotifications([]);
 
   const handleScroll = (e) => {
     setScrollPosition(e.target.scrollLeft);
@@ -106,6 +85,42 @@ const GameLobby = ({ games = [] }) => {
     navigate(`/collection/${encodeURIComponent(name)}`);
   };
 
+  const handleNotifications = () => {
+    if (!notifications || notifications.length === 0) {
+      addToastMessage('No notifications yet', 'info');
+      return;
+    }
+    const notificationList = notifications.slice(0, 5).map((n) => n.text).join(', ');
+    addToastMessage(`📢 ${notificationList}`, 'info', 4000);
+    clearNotifications();
+  };
+
+  const handleFavorites = () => {
+    if (!favorites || favorites.length === 0) {
+      addToastMessage('No favorites yet! Add some games ❤️', 'info');
+      return;
+    }
+    const favList = favorites.slice(0, 3).map((fav) => {
+      const g = games.find((gg) => gg.id === fav);
+      return g?.title || `Game ${fav}`;
+    }).join(', ');
+    const more = favorites.length > 3 ? ` +${favorites.length - 3} more` : '';
+    addToastMessage(`⭐ Favorites: ${favList}${more}`, 'success', 4000);
+  };
+
+  const handleRecent = () => {
+    if (!recentlyPlayed || recentlyPlayed.length === 0) {
+      addToastMessage('No recently played games', 'info');
+      return;
+    }
+    const recentList = recentlyPlayed.slice(0, 3).map((recent) => {
+      const g = games.find((gg) => gg.id === recent);
+      return g?.title || `Game ${recent}`;
+    }).join(', ');
+    const more = recentlyPlayed.length > 3 ? ` +${recentlyPlayed.length - 3} more` : '';
+    addToastMessage(`🎮 Recently: ${recentList}${more}`, 'info', 4000);
+  };
+
   const filteredGames = useMemo(() => {
     if (!search) return games;
     const s = search.toLowerCase();
@@ -113,37 +128,37 @@ const GameLobby = ({ games = [] }) => {
   }, [games, search]);
 
   return (
-    <div data-theme={isDarkMode ? 'dark' : 'light'} className={`min-h-screen smooth-transition`} style={{ background: isDarkMode ? '#0D1117' : 'linear-gradient(180deg,#f8fafc,#e6f0ff)' }}>
-      <header className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-b sticky top-0 z-50 shadow-md`}>
+    <div data-theme={isDark ? 'dark' : 'light'} className={`min-h-screen smooth-transition`} style={{ background: isDark ? '#0D1117' : 'linear-gradient(180deg,#f8fafc,#e6f0ff)' }}>
+      <header className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-b sticky top-0 z-50 shadow-md`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg`} style={{ background: isDarkMode ? 'linear-gradient(135deg,#A46BFF,#3BF4C5)' : 'linear-gradient(135deg,#3BF4C5,#FF4D8D)' }}>
+            <div className={`p-2 rounded-lg`} style={{ background: isDark ? 'linear-gradient(135deg,#A46BFF,#3BF4C5)' : 'linear-gradient(135deg,#3BF4C5,#FF4D8D)' }}>
               <Gamepad2 className="w-6 h-6 text-white" />
             </div>
-            <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>GameHub</h1>
+            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>GameHub</h1>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-lg ${isDarkMode ? 'bg-slate-700' : 'bg-slate-100'}`}>
-              <Search className={`w-4 h-4 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`} />
+            <div className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-lg ${isDark ? 'bg-slate-700' : 'bg-slate-100'}`}>
+              <Search className={`w-4 h-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search games..."
-                className={`bg-transparent outline-none ${isDarkMode ? 'text-white placeholder-slate-400' : 'text-slate-900 placeholder-slate-500'}`}
+                className={`bg-transparent outline-none ${isDark ? 'text-white placeholder-slate-400' : 'text-slate-900 placeholder-slate-500'}`}
               />
             </div>
 
-            <button onClick={() => setIsDarkMode(!isDarkMode)} className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'bg-slate-700 text-yellow-400 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-              {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <button onClick={() => toggleDark()} className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-slate-700 text-yellow-400 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            <button className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+            <button className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
               <Globe className="w-5 h-5" />
             </button>
 
-            <button onClick={() => setMenuOpen(!menuOpen)} className={`p-2 rounded-lg transition-colors md:hidden ${isDarkMode ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+            <button onClick={() => setMenuOpen(!menuOpen)} className={`p-2 rounded-lg transition-colors md:hidden ${isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
               <Menu className="w-5 h-5" />
             </button>
           </div>
@@ -152,7 +167,7 @@ const GameLobby = ({ games = [] }) => {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className={`md:hidden ${isDarkMode ? 'bg-slate-800' : 'bg-white'} border-b`}>
+        <div className={`md:hidden ${isDark ? 'bg-slate-800' : 'bg-white'} border-b`}>
           <div className="px-4 py-4 flex items-center justify-between">
             <input
               type="text"
@@ -168,15 +183,15 @@ const GameLobby = ({ games = [] }) => {
 
       <main className="max-w-7xl mx-auto px-4 py-12">
         <div className="mb-8">
-          <h2 className={`text-4xl font-bold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Discover & Play</h2>
-          <p className={`text-lg ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Click the play button to start your adventure!</p>
+          <h2 className={`text-4xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Discover & Play</h2>
+          <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Click the play button to start your adventure!</p>
         </div>
 
         <div onScroll={handleScroll} className="overflow-x-auto pb-4 scrollbar-hide" style={{ scrollBehavior: 'smooth' }}>
           <div ref={gamesRef} className={`flex gap-6 min-w-max pr-8 games-list ${gamesInView ? 'in-view' : ''}`}>
             {filteredGames.map((game, idx) => (
               <div key={game.id} className="animate-card" style={{ ['--i']: idx }}>
-                <GameCard game={game} isDarkMode={isDarkMode} onPlay={() => handleGameClick(game.id)} isFavorite={favorites.includes(game.id)} onToggleFavorite={() => toggleFavorite(game.id)} />
+                <GameCard game={game} />
               </div>
             ))}
           </div>
@@ -184,38 +199,38 @@ const GameLobby = ({ games = [] }) => {
 
         {scrollPosition > 0 && (
           <div className="mt-6 text-center">
-            <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>👈 Scroll left to see more games</p>
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>👈 Scroll left to see more games</p>
           </div>
         )}
 
         {/* curved divider */}
         <div className="section-wave mt-12 -mb-6" aria-hidden="true">
           <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="w-full h-20">
-            <path d="M0,32 C360,96 1080,-32 1440,32 L1440 120 L0 120 Z" fill={isDarkMode ? '#0f172a' : '#ffffff'} opacity="0.9"></path>
+            <path d="M0,32 C360,96 1080,-32 1440,32 L1440 120 L0 120 Z" fill={isDark ? '#0f172a' : '#ffffff'} opacity="0.9"></path>
           </svg>
         </div>
 
         <section ref={featuredRef} className={`mt-16 featured-section ${featuredInView ? 'in-view' : ''}`}>
-          <h3 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Featured Collections</h3>
+          <h3 className={`text-2xl font-bold mb-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>Featured Collections</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-            <div onClick={() => navigateToCollection('Action')} role="button" tabIndex={0} className={`p-6 rounded-xl cursor-pointer ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'} hover:shadow-lg transition-shadow`}>
+            <div onClick={() => navigateToCollection('Action')} role="button" tabIndex={0} className={`p-6 rounded-xl cursor-pointer ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'} hover:shadow-lg transition-shadow`}>
               <div className="text-4xl mb-3">🎮</div>
-              <h4 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Action Games</h4>
-              <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Fast-paced games to get your adrenaline pumping</p>
+              <h4 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Action Games</h4>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Fast-paced games to get your adrenaline pumping</p>
             </div>
 
 
-            <div onClick={() => navigateToCollection('Puzzle')} role="button" tabIndex={0} className={`p-6 rounded-xl cursor-pointer ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'} hover:shadow-lg transition-shadow`}>
+            <div onClick={() => navigateToCollection('Puzzle')} role="button" tabIndex={0} className={`p-6 rounded-xl cursor-pointer ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'} hover:shadow-lg transition-shadow`}>
               <div className="text-4xl mb-3">🧠</div>
-              <h4 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Brain Teasers</h4>
-              <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Challenge your mind with puzzles and strategy games</p>
+              <h4 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Brain Teasers</h4>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Challenge your mind with puzzles and strategy games</p>
             </div>
 
-            <div onClick={() => navigateToCollection('Simulation')} role="button" tabIndex={0} className={`p-6 rounded-xl cursor-pointer ${isDarkMode ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'} hover:shadow-lg transition-shadow`}>
+            <div onClick={() => navigateToCollection('Simulation')} role="button" tabIndex={0} className={`p-6 rounded-xl cursor-pointer ${isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-slate-200'} hover:shadow-lg transition-shadow`}>
               <div className="text-4xl mb-3">⭐</div>
-              <h4 className={`text-lg font-semibold mb-2 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Trending Now</h4>
-              <p className={`${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>Popular games played by millions this week</p>
+              <h4 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Trending Now</h4>
+              <p className={`${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Popular games played by millions this week</p>
             </div>
           </div>
         </section>
@@ -223,18 +238,12 @@ const GameLobby = ({ games = [] }) => {
 
       {/* Floating sidebar for quick access */}
       <FloatingSidebar
-        isDark={isDarkMode}
-        favorites={favorites}
-        recentlyPlayed={recentlyPlayed}
-        notifications={notifications}
         games={games}
         onToggleFavorite={toggleFavorite}
-        onClearNotifications={clearNotifications}
-        addToast={addToast}
       />
 
       {/* Toast notifications */}
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <ToastContainer toasts={toasts || []} removeToast={_removeToast} />
 
       {/* Mobile quick actions (bottom) */}
       <div className="md:hidden fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
@@ -277,43 +286,43 @@ const GameLobby = ({ games = [] }) => {
         }
       `}</style>
 
-      <footer className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-t mt-16`}>
+      <footer className={`${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} border-t mt-16`}>
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h5 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Games</h5>
-              <ul className={`space-y-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <h5 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Games</h5>
+              <ul className={`space-y-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 <li className="hover:text-blue-500 cursor-pointer">Popular</li>
                 <li className="hover:text-blue-500 cursor-pointer">New</li>
                 <li className="hover:text-blue-500 cursor-pointer">Categories</li>
               </ul>
             </div>
             <div>
-              <h5 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Community</h5>
-              <ul className={`space-y-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <h5 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Community</h5>
+              <ul className={`space-y-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 <li className="hover:text-blue-500 cursor-pointer">Forum</li>
                 <li className="hover:text-blue-500 cursor-pointer">Leaderboard</li>
                 <li className="hover:text-blue-500 cursor-pointer">Events</li>
               </ul>
             </div>
             <div>
-              <h5 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Support</h5>
-              <ul className={`space-y-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <h5 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Support</h5>
+              <ul className={`space-y-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 <li className="hover:text-blue-500 cursor-pointer">Help</li>
                 <li className="hover:text-blue-500 cursor-pointer">Contact</li>
                 <li className="hover:text-blue-500 cursor-pointer">Status</li>
               </ul>
             </div>
             <div>
-              <h5 className={`font-semibold mb-4 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Legal</h5>
-              <ul className={`space-y-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+              <h5 className={`font-semibold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>Legal</h5>
+              <ul className={`space-y-2 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 <li className="hover:text-blue-500 cursor-pointer">Privacy</li>
                 <li className="hover:text-blue-500 cursor-pointer">Terms</li>
                 <li className="hover:text-blue-500 cursor-pointer">Cookies</li>
               </ul>
             </div>
           </div>
-          <div className={`border-t ${isDarkMode ? 'border-slate-700' : 'border-slate-200'} pt-8 text-center ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+          <div className={`border-t ${isDark ? 'border-slate-700' : 'border-slate-200'} pt-8 text-center ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
             <p>&copy; 2025 GameHub. All rights reserved.</p>
           </div>
         </div>

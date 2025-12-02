@@ -1,7 +1,11 @@
 import React from 'react';
 import { Bell, Star, Clock } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
-const FloatingSidebar = ({ isDark, favorites = [], recentlyPlayed = [], notifications = [], games = [], onToggleFavorite, onClearNotifications, addToast }) => {
+const FloatingSidebar = ({ games = [], onToggleFavorite }) => {
+  const { state, clearNotifications, addToast } = useApp();
+  const { notifications = [], favorites = [], recentlyPlayed = [], isDark } = state;
+
   const notifCount = notifications.length;
   const favCount = favorites.length;
   const recentCount = recentlyPlayed.length;
@@ -13,32 +17,32 @@ const FloatingSidebar = ({ isDark, favorites = [], recentlyPlayed = [], notifica
 
   const handleNotifications = () => {
     if (!notifications || notifications.length === 0) {
-      addToast('No notifications yet', 'info');
+      addToast({ id: Date.now(), message: 'No notifications yet', type: 'info' });
       return;
     }
     const notificationList = notifications.slice(0, 5).map((n) => n.text).join(', ');
-    addToast(`📢 ${notificationList}`, 'info', 4000);
-    if (onClearNotifications) onClearNotifications();
+    addToast({ id: Date.now(), message: `📢 ${notificationList}`, type: 'info', duration: 4000 });
+    clearNotifications();
   };
 
   const handleFavorites = () => {
     if (!favorites || favorites.length === 0) {
-      addToast('No favorites yet! Add some games ❤️', 'info');
+      addToast({ id: Date.now(), message: 'No favorites yet! Add some games ❤️', type: 'info' });
       return;
     }
     const favList = favorites.slice(0, 3).map((fav) => getGameTitle(fav)).join(', ');
     const more = favorites.length > 3 ? ` +${favorites.length - 3} more` : '';
-    addToast(`⭐ Favorites: ${favList}${more}`, 'success', 4000);
+    addToast({ id: Date.now(), message: `⭐ Favorites: ${favList}${more}`, type: 'success', duration: 4000 });
   };
 
   const handleRecent = () => {
     if (!recentlyPlayed || recentlyPlayed.length === 0) {
-      addToast('No recently played games', 'info');
+      addToast({ id: Date.now(), message: 'No recently played games', type: 'info' });
       return;
     }
     const recentList = recentlyPlayed.slice(0, 3).map((recent) => getGameTitle(recent)).join(', ');
     const more = recentlyPlayed.length > 3 ? ` +${recentlyPlayed.length - 3} more` : '';
-    addToast(`🎮 Recently: ${recentList}${more}`, 'info', 4000);
+    addToast({ id: Date.now(), message: `🎮 Recently: ${recentList}${more}`, type: 'info', duration: 4000 });
   };
 
   return (
