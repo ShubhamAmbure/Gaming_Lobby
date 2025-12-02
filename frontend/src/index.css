@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@layer components {
+  .neon-btn-hover:hover {
+    box-shadow: 0 6px 30px rgba(58, 244, 197, 0.18), 0 0 40px rgba(255, 77, 141, 0.06);
+  }
+
+  .neon-outline {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  }
+}
+
+html, body, #root {
+  height: 100%;
+}
