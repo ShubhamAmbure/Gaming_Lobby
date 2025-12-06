@@ -1,0 +1,32 @@
+export const games = [
+  {
+    id: 1,
+    title: "Gates of Olympus",
+    category: "PG Soft",
+    photo: "/images/games/gates.jpg",
+    playersOnline: 15023,
+    maxWin: "5000x",
+    volatility: "High",
+    rtp: "96.5%",
+  },
+  {
+    id: 2,
+    title: "Clash Heroes",
+    category: "Casual",
+    photo: "/images/games/clash.jpg",
+    playersOnline: 8421,
+    maxWin: "1200x",
+    volatility: "Medium",
+    rtp: "95.8%",
+  },
+  {
+    id: 3,
+    title: "Zeus Fury",
+    category: "Revenge",
+    photo: "/images/games/zeus.jpg",
+    playersOnline: 21984,
+    maxWin: "8000x",
+    volatility: "High",
+    rtp: "97.2%",
+  },
+];

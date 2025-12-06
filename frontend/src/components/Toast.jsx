@@ -72,4 +72,4 @@ const Toast = ({ id, message, type = 'info', onClose, duration = 3000 }) => {
   );
 };
 
-export default Toast;
+export default React.memo(Toast);

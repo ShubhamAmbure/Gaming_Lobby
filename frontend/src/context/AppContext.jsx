@@ -8,6 +8,8 @@ const initialState = {
   notifications: [],
   recentlyPlayed: [],
   toasts: [],
+  currency: 'USD',
+  userId: null,
 };
 
 function reducer(state, action) {
@@ -36,6 +38,10 @@ function reducer(state, action) {
       return { ...state, toasts: [...state.toasts, action.payload] };
     case 'REMOVE_TOAST':
       return { ...state, toasts: state.toasts.filter((t) => t.id !== action.payload) };
+    case 'SET_CURRENCY':
+      return { ...state, currency: action.payload };
+    case 'SET_USERID':
+      return { ...state, userId: action.payload };
     case 'SET_STATE':
       return { ...state, ...action.payload };
     default:
@@ -64,6 +70,8 @@ function saveStateToStorage(state) {
       favorites: state.favorites || [],
       recentlyPlayed: state.recentlyPlayed || [],
       isDark: !!state.isDark,
+      currency: state.currency || 'USD',
+      userId: state.userId || null,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
   } catch (e) {
@@ -84,7 +92,7 @@ export const AppProvider = ({ children }) => {
   // Persist selected parts of state to localStorage
   useEffect(() => {
     saveStateToStorage(state);
-  }, [state.favorites, state.recentlyPlayed, state.isDark]);
+  }, [state.favorites, state.recentlyPlayed, state.isDark, state.currency, state.userId]);
 
   // helper actions
   const toggleDark = () => dispatch({ type: 'TOGGLE_DARK' });
@@ -97,6 +105,8 @@ export const AppProvider = ({ children }) => {
   const clearNotifications = () => dispatch({ type: 'CLEAR_NOTIFICATIONS' });
   const addToast = (toast) => dispatch({ type: 'ADD_TOAST', payload: toast });
   const removeToast = (id) => dispatch({ type: 'REMOVE_TOAST', payload: id });
+  const setCurrency = (c) => dispatch({ type: 'SET_CURRENCY', payload: c });
+  const setUserId = (id) => dispatch({ type: 'SET_USERID', payload: id });
 
   const value = {
     state,
@@ -111,6 +121,8 @@ export const AppProvider = ({ children }) => {
     clearNotifications,
     addToast,
     removeToast,
+    setCurrency,
+    setUserId,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

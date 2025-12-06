@@ -63,4 +63,4 @@ const FloatingSidebar = ({ games = [], onToggleFavorite }) => {
   );
 };
 
-export default FloatingSidebar;
+export default React.memo(FloatingSidebar);

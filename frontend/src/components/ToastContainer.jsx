@@ -36,4 +36,4 @@ const ToastContainer = ({ toasts, removeToast }) => {
   );
 };
 
-export default ToastContainer;
+export default React.memo(ToastContainer);
