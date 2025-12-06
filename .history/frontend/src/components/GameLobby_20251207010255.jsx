@@ -179,7 +179,8 @@ const GameLobby = ({ games = [] }) => {
         <div className="flex items-center justify-between px-4 py-4 w-full">
 
          {/* LEFT LOGO — RESPONSIVE (Option B) */}
-<div className="flex items-center w-14 h-14">
+{/* LEFT LOGO — BIG VISUAL, FIXED HEADER HEIGHT */}
+<div className="flex items-center w-10 h-10 md:w-14 md:h-14">
   <img
     src="/images/100.png"
     alt="logo"

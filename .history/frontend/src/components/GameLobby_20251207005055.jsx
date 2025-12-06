@@ -178,14 +178,17 @@ const GameLobby = ({ games = [] }) => {
       >
         <div className="flex items-center justify-between px-4 py-4 w-full">
 
-         {/* LEFT LOGO — RESPONSIVE (Option B) */}
-<div className="flex items-center w-14 h-14">
-  <img
-    src="/images/100.png"
-    alt="logo"
-    className="w-full h-full object-contain"
-  />
-</div>
+          {/* ============== LEFT LOGO ============== */}
+          <div className="flex items-center gap-3">
+            <img
+              src="/images/100.png"
+              alt="logo"
+              className="w-[50px] h-[50px] object-contain"
+            />
+            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>
+              Zenvy Gaming
+            </h1>
+          </div>
 
           {/* ================= RIGHT NAV BUTTONS ================= */}
           <div className="flex items-center gap-3 md:gap-4">

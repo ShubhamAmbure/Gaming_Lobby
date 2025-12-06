@@ -179,11 +179,12 @@ const GameLobby = ({ games = [] }) => {
         <div className="flex items-center justify-between px-4 py-4 w-full">
 
          {/* LEFT LOGO — RESPONSIVE (Option B) */}
-<div className="flex items-center w-14 h-14">
+{/* LEFT LOGO — PERFECT RESPONSIVE BALANCED SIZE */}
+<div className="flex items-center">
   <img
     src="/images/100.png"
     alt="logo"
-    className="w-full h-full object-contain"
+    className="w-8 h-8 md:w-12 md:h-12 object-contain"
   />
 </div>
 
